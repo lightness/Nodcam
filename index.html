@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<meta name="viewport" content="width=640, initial-scale=1"/>
-	<title>Streaming</title>
+	<meta name="viewport" content="width=640, initial-scale=1" />
+	<title>[SS] Smartex Stream</title>
 	<style type="text/css">
 		body {
 			text-align: center;
@@ -20,48 +21,48 @@
 	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
 	<script src="public/jsmpg.js"></script>
-		
+
 
 </head>
+
 <body>
-	
+
 
 	<div class="container">
-  
-	    <div class="row">
 
-	    	<div class="col-lg-12">
-	    		<div style="width:'640px'; margin: 'auto';">
-				<canvas id="videoCanvas" width="640" height="480">
-				</canvas>
-	    		</div>
-	    	</div>
+		<div class="row">
 
-	        <div class="message-wrap col-lg-12">
-	        	<button onclick="loadMoreHistory()">Load More History (Beta)</button>
-	            <div class="msg-wrap" id="message-container">
-	        
-	            </div>
+			<div class="col-lg-12">
+				<div style="width:'640px'; margin: 'auto';">
+					<canvas id="videoCanvas" width="640" height="480">
+					</canvas>
+				</div>
+			</div>
 
-	            <div class="links">
-	            	<button class="btn-link" onclick="chatSocket.send('/online')" >/online</button>
-	            	<button class="btn-link" onclick="chatSocket.send('/help')" >/help</button>
-	            </div>
+			<div class="message-wrap col-lg-12">
+				<div class="msg-wrap" id="message-container">
+
+				</div>
+
+				<div class="links">
+					<button class="btn-link" onclick="chatSocket.send('/online')">/online</button>
+					<button class="btn-link" onclick="chatSocket.send('/help')">/help</button>
+				</div>
 				<form id="message-form">
-		            <div class="send-wrap ">
-		                <textarea id="textarea-message" class="form-control send-message" rows="3" placeholder="Write a reply..."></textarea>
-		            </div>
-		            <div>
-		                <button id="btn-send" type="button" class="col-lg-4 btn send-message-btn pull-right">
-		                	<i class="fa fa-plus"></i> 
-		                	Send Message
-		                </button>
-		            </div>
-	            </form>
-	        </div>
-	    </div>
+					<div class="send-wrap ">
+						<textarea id="textarea-message" class="form-control send-message" rows="3" placeholder="Write a reply..."></textarea>
+					</div>
+					<div>
+						<button id="btn-send" type="button" class="col-lg-4 btn send-message-btn pull-right">
+							<i class="fa fa-plus"></i>
+							Send Message
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
 	</div>
-	
+
 	<script id="message-template" type="text/x-custom-template">
 		<div class="media msg">
 	        <a class="pull-left" href="#">
@@ -82,30 +83,36 @@
 		body {
 			background-color: blanchedalmond;
 		}
+
 		.message {
 			display: block;
 			text-align: left;
 		}
+
 		.media {
 			padding: 0 15px;
 		}
+
 		.media-heading {
 			font-weight: 600;
 			text-align: left;
 		}
-		.send-wrap {
-			
-		}
+
+		.send-wrap {}
+
 		#btn-send {
 			margin-top: -35px;
 		}
+
 		#message-container {
 			max-height: 350px;
-    		overflow-y: auto;
+			overflow-y: auto;
 		}
+
 		.links button {
 			font-weight: 600;
 		}
+
 		.links {
 			text-align: left;
 		}
@@ -115,79 +122,83 @@
 		var canvas = document.getElementById('videoCanvas');
 		var ctx = canvas.getContext('2d');
 		ctx.fillStyle = '#fff';
-		ctx.fillText('Loading...', canvas.width/2-30, canvas.height/3);
-		
-
-		var client = new WebSocket( 'ws://' + window.location.hostname + ':8084/12345' );
-		var player = new jsmpeg(client, {canvas:canvas});
+		ctx.fillText('Loading...', canvas.width / 2 - 30, canvas.height / 3);
 
 
+		var client = new WebSocket('ws://' + window.location.hostname + ':8084/12345');
+		var player = new jsmpeg(client, { canvas: canvas });
 
 
+
+		var hasHistory = true;
 
 		var chatSocket = new WebSocket('ws://' + window.location.hostname + ':3070');
 
-		chatSocket.onopen = function() {
-		  console.log("Соединение установлено.");
+		chatSocket.onopen = function () {
+			console.log("Соединение установлено.");
 
-		  chatSocket.send("Я на сервере");
+			chatSocket.send("Я на сервере");
 		};
 
-		chatSocket.onclose = function(event) {
-		  if (event.wasClean) {
-		    console.log('Соединение закрыто чисто');
-		  } else {
-		    console.log('Обрыв соединения'); 
-		  }
-		  console.log('Код: ' + event.code + ' причина: ' + event.reason);
+		chatSocket.onclose = function (event) {
+			if (event.wasClean) {
+				console.log('Соединение закрыто чисто');
+			} else {
+				console.log('Обрыв соединения');
+			}
+			console.log('Код: ' + event.code + ' причина: ' + event.reason);
 		};
 
-		chatSocket.onmessage = function(event) {
-		  console.log("Получены данные " + event.data);
+		chatSocket.onmessage = function (event) {
+			// console.log("Получены данные " + event.data);
 
-		  let message = JSON.parse(event.data);
-		  
-		  if (message.message instanceof Array) {
-		  	let firstMessage = $("#message-container :first");
-		  	message.message.reverse();
-		  	message.message.forEach(function (m) {
-		  		addMessage(JSON.parse(m), { prepend: true });
-		  	});
+			let message = JSON.parse(event.data);
 
-		  	console.log(">>> ",firstMessage.position().top);
-		  } else {
-		  	addMessage(message);
-		  }
+			if (message.message instanceof Array) {
+				if (message.message.length === 0) {
+					hasHistory = false;
+				} else {
+					message.message.reverse();
+					message.message.forEach(function (m) {
+						addMessage(JSON.parse(m), { prepend: true });
+					});
+				}
+			} else {
+				addMessage(message);
 
-		  function addMessage(message, options) {
-		  	  options || (options = {
-		  	  	prepend: false
-		  	  })
+				if (message.user === "System") {
+					scrollBottom();
+				}
+			}
 
-			  let date = new Date(message.date);
-			  let formattedDate = date.getHours()+":"+date.getMinutes();
-			  let content = message.message;
+			function addMessage(message, options) {
+				options || (options = {
+					prepend: false
+				})
 
-			  let template = $("#message-template").html();
-			  let renderedTemplate = template
-			  	.replace("[[[USER]]]", message.user === "127.0.0.1" ? "Admin" : message.user)
-			  	.replace("[[[MESSAGE]]]", content)
-			  	.replace("[[[DATE]]]", formattedDate);
+				let date = new Date(message.date);
+				let formattedDate = date.getHours() + ":" + date.getMinutes();
+				let content = message.message;
 
-			  if (options.prepend) {
-			  	$("#message-container").prepend(renderedTemplate);
-			  } else {
-			  	$("#message-container").append(renderedTemplate);	
-			  }
-			  
-		  }
+				let template = $("#message-template").html();
+				let renderedTemplate = template
+					.replace("[[[USER]]]", message.user === "127.0.0.1" ? "Admin" : message.user)
+					.replace("[[[MESSAGE]]]", content)
+					.replace("[[[DATE]]]", formattedDate);
+
+				if (options.prepend) {
+					$("#message-container").prepend(renderedTemplate);
+				} else {
+					$("#message-container").append(renderedTemplate);
+				}
+			}
 		};
 
-		chatSocket.onerror = function(error) {
-		  console.log("Ошибка " + error.message);
+		chatSocket.onerror = function (error) {
+			console.log("Ошибка " + error.message);
 		};
 
-		$(document).ready(function() {
+		$(document).ready(function () {
 			$("#message-form").submit(function () {
 				let text = $("#textarea-message").val();
 
@@ -207,13 +218,19 @@
 			});
 
 			$('#textarea-message').keypress(function (e) {
-			  	scrollBottom();
+				scrollBottom();
 
-			  	if ((e.which == 10 || e.which == 13) && e.ctrlKey) {
-			    	$('#message-form').submit();
+				if ((e.which == 10 || e.which == 13) && e.ctrlKey) {
+					$('#message-form').submit();
 
-			        return false;   
-			    }
+					return false;
+				}
+			});
+
+			$("#message-container").on("mousewheel", function () {
+				if (hasHistory && $("#message-container")[0].scrollTop === 0) {
+					loadMoreHistory();
+				}
 			});
 		});
 
@@ -223,8 +240,12 @@
 			let histLen = getLoadedHistoryLength() + 1;
 			let nextHistLen = histLen + DELTA;
 
-			chatSocket.send("/history -"+nextHistLen+" -"+histLen);
+			loadUniqueHistory(nextHistLen, histLen);
 		}
+
+		let loadUniqueHistory = filterSameCalls(function (from, to) {
+			chatSocket.send("/history -" + from + " -" + to);
+		});
 
 		function getLoadedHistoryLength() {
 			return $("#message-container").children().length;
@@ -236,7 +257,37 @@
 			});
 		}
 
+		function filterSameCalls(f) {
+			let argSnapshots = [];
+
+			return function (...args) {
+				let isCopy = argSnapshots.findIndex(function (snapshot) {
+					return arraysEqual(snapshot, args);
+				}) > -1;
+
+				if (isCopy) {
+					return;
+				} else {
+					argSnapshots.push(args);
+
+					return f.apply(this, args);
+				}
+			}
+		}
+
+		function arraysEqual(a, b) {
+			if (a === b) return true;
+			if (a == null || b == null) return false;
+			if (a.length != b.length) return false;
+
+			for (var i = 0; i < a.length; ++i) {
+				if (a[i] !== b[i]) return false;
+			}
+			return true;
+		}
+
 	</script>
 
 </body>
+
 </html>
