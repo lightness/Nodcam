@@ -26,10 +26,10 @@ socketServer.on('connection', function(socket) {
 	streamHeader.writeUInt16BE(height, 6);
 	socket.send(streamHeader, {binary:true});
 
-	console.log( 'New WebSocket Connection ('+socketServer.clients.length+' total)' );
+	console.log( 'New WebSocket Connection '+ socket._socket.remoteAddress +' ('+socketServer.clients.length+' total)' );
 	
 	socket.on('close', function(code, message){
-		console.log( 'Disconnected WebSocket ('+socketServer.clients.length+' total)' );
+		console.log( 'Disconnected WebSocket '+ socket._socket.remoteAddress +' ('+socketServer.clients.length+' total)' );
 	});
 });
 
