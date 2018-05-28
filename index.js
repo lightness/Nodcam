@@ -242,7 +242,7 @@ function setUserName(name, ws) {
 		.catch(function (e) {
 			console.error(e);
 
-			return e === error ? e : "Something went wrong";
+			return e === error ? e.message : "Something went wrong";
 		});
 }
 
