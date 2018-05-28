@@ -19,6 +19,7 @@
 	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
 	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Rye" rel="stylesheet">
 
 	<script src="public/jsmpg.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/date-format-lite@17.7.0/index.min.js"></script>
@@ -29,18 +30,19 @@
 </head>
 
 <body>
-
+	<a href="https://github.com/lightness/Nodcam">
+		<img style="position: absolute; top: 0; left: 0; border: 0; z-index: 1000;" 
+			 src="https://s3.amazonaws.com/github/ribbons/forkme_left_darkblue_121621.png"
+		 	 alt="Fork me on GitHub">
+	</a>
 
 	<div class="container">
 
-		<div class="row">
+		<h3 class="main-title">Smartex Stream</h3>
 
-			<div class="col-lg-12">
-				<div style="width:'640px'; margin: 'auto';">
-					<canvas id="videoCanvas" width="640" height="480">
-					</canvas>
-				</div>
-			</div>
+		<div class="row">
+			<canvas id="videoCanvas" width="640" height="480">
+			</canvas>
 
 			<div class="message-wrap col-lg-12">
 				<div class="msg-wrap" id="message-container">
@@ -90,9 +92,14 @@
 			background-color: blanchedalmond;
 		}
 
+		.main-title {
+			font-family: 'Rye', cursive;
+		}
+
 		.message {
 			display: block;
 			text-align: left;
+			margin: 0;
 		}
 
 		.media {
@@ -101,6 +108,7 @@
 		}
 
 		.media-heading {
+			margin: 0.5em 0 0;
 			font-weight: 600;
 			text-align: left;
 		}
@@ -112,7 +120,7 @@
 		}
 
 		#message-container {
-			max-height: 350px;
+			max-height: 300px;
 			overflow-y: auto;
 		}
 
