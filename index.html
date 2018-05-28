@@ -22,6 +22,9 @@
 
 	<script src="public/jsmpg.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/date-format-lite@17.7.0/index.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/identicon.js/2.3.2/pnglib.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/identicon.js/2.3.2/identicon.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js"></script>
 
 </head>
 
@@ -66,7 +69,7 @@
 	<script id="message-template" type="text/x-custom-template">
 		<div class="media msg">
 	        <a class="pull-left" href="#">
-	            <img class="media-object" data-src="holder.js/64x64" alt="64x64" style="width: 32px; height: 32px;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACqUlEQVR4Xu2Y60tiURTFl48STFJMwkQjUTDtixq+Av93P6iBJFTgg1JL8QWBGT4QfDX7gDIyNE3nEBO6D0Rh9+5z9rprr19dTa/XW2KHl4YFYAfwCHAG7HAGgkOQKcAUYAowBZgCO6wAY5AxyBhkDDIGdxgC/M8QY5AxyBhkDDIGGYM7rIAyBgeDAYrFIkajEYxGIwKBAA4PDzckpd+322243W54PJ5P5f6Omh9tqiTAfD5HNpuFVqvFyckJms0m9vf3EY/H1/u9vb0hn89jsVj8kwDfUfNviisJ8PLygru7O4TDYVgsFtDh9Xo9NBrNes9cLgeTybThgKenJ1SrVXGf1WoVDup2u4jFYhiPx1I1P7XVBxcoCVCr1UBfTqcTrVYLe3t7OD8/x/HxsdiOPqNGo9Eo0un02gHkBhJmuVzC7/fj5uYGXq8XZ2dnop5Mzf8iwMPDAxqNBmw2GxwOBx4fHzGdTpFMJkVzNB7UGAmSSqU2RoDmnETQ6XQiOyKRiHCOSk0ZEZQcUKlU8Pz8LA5vNptRr9eFCJQBFHq//szG5eWlGA1ywOnpqQhBapoWPfl+vw+fzweXyyU+U635VRGUBOh0OigUCggGg8IFK/teXV3h/v4ew+Hwj/OQU4gUq/w4ODgQrkkkEmKEVGp+tXm6XkkAOngmk4HBYBAjQA6gEKRmyOL05GnR99vbW9jtdjEGdP319bUIR8oA+pnG5OLiQoghU5OElFlKAtCGr6+vKJfLmEwm64aosd/XbDbbyIBSqSSeNKU+HXzlnFAohKOjI6maMs0rO0B20590n7IDflIzMmdhAfiNEL8R4jdC/EZIJj235R6mAFOAKcAUYApsS6LL9MEUYAowBZgCTAGZ9NyWe5gCTAGmAFOAKbAtiS7TB1Ng1ynwDkxRe58vH3FfAAAAAElFTkSuQmCC">
+	            <img class="media-object" data-src="holder.js/64x64" alt="64x64" style="width: 48px; height: 48px;" src="[[[IMAGE]]]">
 	        </a>
 	        <div class="media-body">
 	            <small class="pull-right time" data-date="[[[DATE]]]" >
@@ -93,6 +96,7 @@
 		}
 
 		.media {
+			margin-top: 0;
 			padding: 0 15px;
 		}
 
@@ -101,7 +105,7 @@
 			text-align: left;
 		}
 
-		.send-wrap {}
+		/* .send-wrap {} */
 
 		#btn-send {
 			margin-top: -35px;
@@ -122,6 +126,8 @@
 	</style>
 
 	<script type="text/javascript">
+
+
 		var canvas = document.getElementById('videoCanvas');
 		var ctx = canvas.getContext('2d');
 		ctx.fillStyle = '#fff';
@@ -180,7 +186,8 @@
 
 				let template = $("#message-template").html();
 				let renderedTemplate = template
-					.replace("[[[USER]]]", message.user === "127.0.0.1" ? "Admin" : message.user)
+					.replace("[[[USER]]]", getUserName(message.user))
+					.replace("[[[IMAGE]]]", getImage(message.user))
 					.replace("[[[MESSAGE]]]", content)
 					.replace("[[[DATE]]]", isoDate)
 					.replace("[[[FORMATTED_DATE]]]", getFormattedDate(date));
@@ -192,6 +199,14 @@
 				}
 			}
 		};
+
+		function getImage(user) {
+			return "data:image/png;base64," + new Identicon(md5(getUserName(user)), { margin: 0.2, background: [140, 140, 140, 0], foreground: [255, 153, 51, 255] }).toString();
+		}
+
+		function getUserName(user) {
+			return user === "127.0.0.1" ? "Admin" : user;
+		}
 
 		function getFormattedDate(date) {
 			let now = new Date();
