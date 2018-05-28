@@ -137,7 +137,7 @@ function processCommand(command, ws) {
 				let msg = "Command `" + parts[1] + "`.\n" + ALL_COMMANDS[parts[1]].message;
 
 				if (ALL_COMMANDS[parts[1]].children && Object.keys(ALL_COMMANDS[parts[1]].children).length) {
-					msg += "\n\nSee also:\n" + Object.keys(ALL_COMMANDS[parts[1]].children).reduce(function(acc, key){
+					msg += "\n\nSee also:\n" + Object.keys(ALL_COMMANDS[parts[1]].children).reduce(function (acc, key) {
 						return parts[0] + " " + parts[1] + " " + key
 					}, "");
 				}
@@ -219,6 +219,7 @@ function commandOnline() {
 
 function setUserName(name, ws) {
 	let ip = getIP(ws);
+	let error = new Error("Name is already obtained by another user");
 
 	return getHash("name:to:ip", name)
 		.then(function (foundIp) {
@@ -226,7 +227,7 @@ function setUserName(name, ws) {
 				if (ip === foundIp) {
 					return;
 				} else {
-					throw new Error("Name is already obtained by another user");
+					throw error;
 				}
 			}
 
@@ -241,7 +242,7 @@ function setUserName(name, ws) {
 		.catch(function (e) {
 			console.error(e);
 
-			return "Something went wrong";
+			return e === error ? e : "Something went wrong";
 		});
 }
 
@@ -263,5 +264,5 @@ function setHash(hash, key, value) {
 
 function resolveName(ip) {
 	return getHash("ip:to:name", ip)
-		.then(name => name || (ip === "127.0.0.1" ? "Admin": ip));
+		.then(name => name || (ip === "127.0.0.1" ? "Admin" : ip));
 }
