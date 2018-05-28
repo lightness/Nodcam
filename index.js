@@ -41,8 +41,6 @@ redisClient.on("error", function (err) {
 
 
 
-
-
 const wss = new WebSocket.Server({ port: CHAT_PORT });
 
 wss.on('connection', function connection(ws) {
@@ -68,7 +66,10 @@ wss.on('connection', function connection(ws) {
 			}
 
 		} else {
-			broadcast(ip, message);
+			getHash("ip:to:name", ip)
+				.then(function (name) {
+					broadcast(name || ip, message);
+				});
 		}
 
 	});
@@ -80,25 +81,88 @@ wss.on('connection', function connection(ws) {
 	console.log('New WebSocket Connection ' + ip + ' (' + wss.clients.length + ' total)');
 });
 
+const ALL_COMMANDS = {
+	"help": { message: "Shows this help" },
+	"online": { message: "Provides list of online users" },
+	"set": {
+		message: "Sets some property. See detailed reference",
+		children: {
+			"name": { message: "Sets user name. Name will be visible for all users." }
+		}
+	},
+};
+
 function processCommand(command, ws) {
-	if (command == "/help") {
-		return "/help - Help\n/online - Online users";
-	} else if (command == "/online") {
-		return "Online users: " + wss.clients.map(function (client) {
-			var clientIP = client._socket.remoteAddress;
+	let parts = getParts(command);
 
-			return clientIP === "127.0.0.1" ? "Admin" : clientIP;
-		}).join(", ");
-	} else if (command.startsWith("/history")) {
-		let parts = command.split(" ");
-
+	if (parts[0] === "/help") {
+		return commandHelp(parts);
+	} else if (parts[0] === "/online") {
+		return commandOnline();
+	} else if (parts[0] === "/history") {
 		if (parts.length !== 3 || !isNumeric(parts[1]) || !isNumeric(parts[2])) {
 			throw Error("Wrong command. Type `/help history` for more info");
 		}
 
 		return getHistory(parseFloat(parts[1]), parseFloat(parts[2]), getIP(ws));
+	} else if (command.startsWith("/set name")) {
+		if (parts.length !== 3) {
+			throw Error("Wrong command. Type `/help set` for more info");
+		}
+
+		return setUserName(unescape(parts[2]), ws);
 	} else {
 		throw Error("Wrong command. Type `/help` for more info");
+	}
+
+	function getParts(command) {
+		let parts = command.match(/[^\s"]+|"[^"]*"/g);
+
+		return parts.map(part => unescape(part));
+	}
+
+	function unescape(escaped) {
+		let matches = escaped.match(/^"(.*)"$/);
+
+		return matches ? matches[1] : escaped;
+	}
+
+	function commandHelp(parts) {
+		if (parts.length === 1) {
+			return Object.keys(ALL_COMMANDS).reduce(function (acc, key) {
+				return acc + "/" + key + " - " + ALL_COMMANDS[key].message + "\n";
+			}, "");
+		} else if (parts.length === 2) {
+			if (Object.keys(ALL_COMMANDS).indexOf(parts[1]) > -1) {
+				let msg = "Command `" + parts[1] + "`.\n" + ALL_COMMANDS[parts[1]].message;
+
+				if (ALL_COMMANDS[parts[1]].children && Object.keys(ALL_COMMANDS[parts[1]].children).length) {
+					msg += "\n\nSee also:\n" + Object.keys(ALL_COMMANDS[parts[1]].children).reduce(function(acc, key){
+						return parts[0] + " " + parts[1] + " " + key
+					}, "");
+				}
+
+				return msg;
+			} else {
+				throw Error("Wrong command. Type `/help` for more info");
+			}
+		} else if (parts.length === 3) {
+			let command = ALL_COMMANDS[parts[1]];
+
+			if (!command) {
+				// throw error
+			}
+
+			let subCommand = command[parts[2]];
+
+			if (!subCommand) {
+				// throw error
+			}
+
+			return "Command `" + parts[1] + " " + parts[2] + "`.\n" + ALL_COMMANDS[parts[1]].children[parts[2]].message;
+		} else {
+			throw Error("Wrong command. Type `/help` for more info");
+		}
 	}
 }
 
@@ -137,11 +201,67 @@ function getHistory(from, to, ip) {
 
 	return new Promise(function (resolve) {
 		redisClient.lrange("messages:" + ip, from, to, (e, data) => {
-			// console.log(">>>", data);
-
 			resolve(data);
 		});
 	});
 }
 
+function getIpOfOnlineUsers() {
+	return wss.clients.map(client => getIP(client));
+}
 
+function commandOnline() {
+	let ips = getIpOfOnlineUsers();
+
+	return Promise.all(ips.map(ip => resolveName(ip)))
+		.then(namesOfIps => "Online users: " + namesOfIps.join(", "));
+}
+
+function setUserName(name, ws) {
+	let ip = getIP(ws);
+
+	return getHash("name:to:ip", name)
+		.then(function (foundIp) {
+			if (foundIp) {
+				if (ip === foundIp) {
+					return;
+				} else {
+					throw new Error("Name is already obtained by another user");
+				}
+			}
+
+			return setHash("name:to:ip", name, ip);
+		})
+		.then(function () {
+			return setHash("ip:to:name", ip, name);
+		})
+		.then(function () {
+			return "Now your name is " + name;
+		})
+		.catch(function (e) {
+			console.error(e);
+
+			return "Something went wrong";
+		});
+}
+
+function getHash(hash, key) {
+	return new Promise(function (resolve) {
+		redisClient.hget(hash, key, (e, data) => {
+			resolve(data);
+		});
+	});
+}
+
+function setHash(hash, key, value) {
+	return new Promise(function (resolve) {
+		redisClient.hset(hash, key, value, (e, data) => {
+			resolve(data);
+		});
+	});
+}
+
+function resolveName(ip) {
+	return getHash("ip:to:name", ip)
+		.then(name => name || (ip === "127.0.0.1" ? "Admin": ip));
+}
