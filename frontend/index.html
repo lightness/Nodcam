@@ -27,6 +27,8 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/identicon.js/2.3.2/identicon.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js"></script>
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js"></script>
+
 	<style>
 		.led-box {
 			height: 30px;
@@ -185,43 +187,63 @@
 		}
 	</style>
 
+	<button id="btn-test">test</button>
+
 	<script type="text/javascript">
 		var canvas = document.getElementById('videoCanvas');
 		var ctx = canvas.getContext('2d');
 		ctx.fillStyle = '#fff';
 		ctx.fillText('Loading...', canvas.width / 2 - 30, canvas.height / 3);
 
-		var streamSocket = new WebSocket('ws://' + window.location.hostname + ':8084/12345');
-		var player = new jsmpeg(streamSocket, { canvas: canvas });
+		let interval = null;
 
-		let originalOnOpen = streamSocket.onopen;
+		function startStream() {
+			var streamSocket = new WebSocket('ws://' + window.location.hostname + ':8084/12345');
+			var player = new jsmpeg(streamSocket, { canvas: canvas });
+			
+			let originalOnOpen = streamSocket.onopen;
 
-		streamSocket.onopen = function () {
-			$("#led-stream")
-				.removeClass("led-red")
-				.addClass("led-green");
+			streamSocket.onopen = function () {
+				$("#led-stream")
+					.removeClass("led-red")
+					.addClass("led-green");
 
-			if (originalOnOpen) {
-				return originalOnOpen.apply(this, arguments);
+				if (originalOnOpen) {
+					return originalOnOpen.apply(this, arguments);
+				}
+
+				interval = null;
+			}
+
+			let originalOnClose = streamSocket.onclose;
+
+			streamSocket.onclose = function () {
+				$("#led-stream")
+					.removeClass("led-green")
+					.addClass("led-red");
+
+				if (originalOnClose) {
+					return originalOnClose.apply(this, arguments);
+				}
+
+				streamSocket.terminate();
+
+				interval = setTimeout(function () {
+					startStream();
+				}, 1000);
 			}
 		}
 
-		let originalOnClose = streamSocket.onclose;
+		startStream();
 
-		streamSocket.onclose = function () {
-			$("#led-stream")
-				.removeClass("led-green")
-				.addClass("led-red");
-
-			if (originalOnClose) {
-				return originalOnClose.apply(this, arguments);
-			}
-		}
+		// $("#btn-test").click(function () {
+		// 	startStream();
+		// });
 
 
 		var hasHistory = true;
 
-		var chatSocket = new WebSocket('ws://' + window.location.hostname + ':3070');
+		var chatSocket = new ReconnectingWebSocket('ws://' + window.location.hostname + ':3070');
 
 		chatSocket.onopen = function () {
 			console.log("Соединение установлено.");
