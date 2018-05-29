@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "express-server": "node index.js",
-    "streaming-server": "node stream.js 12345",
-    "ffmpeg": "ffmpeg -f vfwcap -video_size 640x480 -framerate 40 -rtbufsize 100M -i video='Logitech':audio='Logitech' abc.mp4 -movflags faststart -framerate 40 -vcodec mpeg1video -preset veryfast -maxrate 3000k -bufsize 4000k -c:a aac -b:a 160k -ar 44100 -b:a 128k -f mpeg1video http://localhost:8082/12345/640/480"
+    "chat-server": "node chat-server/index.js",
+    "express-server": "node express-server/index.js",
+    "streaming-server": "node streaming-server/index.js 12345",
+    "ffmpeg": "ffmpeg -f vfwcap -video_size 640x480 -framerate 40 -rtbufsize 100M -i video='Logitech':audio='Logitech' video/latest.mp4 -movflags faststart -framerate 40 -vcodec mpeg1video -preset veryfast -maxrate 3000k -bufsize 4000k -c:a aac -b:a 160k -ar 44100 -b:a 128k -f mpeg1video http://localhost:8082/12345/640/480"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
   "homepage": "https://github.com/tahaipek/Nodcam#readme",
   "dependencies": {
     "express": "^4.14.0",
+    "lodash": "^4.17.10",
     "redis": "^2.8.0",
     "ws": "^1.1.1"
   }
