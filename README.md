@@ -3,23 +3,25 @@ Access and stream web camera in **nodejs** using **ffmpeg**, **websockets** and 
 
 ### **Usage:**
 
+Run in dev mode:
+
 ```npm
 $ git clone https://github.com/lightness/Nodcam.git
-
 $ cd Nodcam
 $ npm install
+$ npm run dev
+```
 
+Run everything separately
 
+```npm
+$ git clone https://github.com/lightness/Nodcam.git
+$ cd Nodcam
+$ npm install
 $ npm run express-server
-
 $ npm run chat-server
-
 $ npm run streaming-server
-	
 $ npm run ffmpeg
-(Streaming camera ffmpeg command => 
-ffmpeg -f dshow -i video="<cameraDeviceName>":audio="<audioDeviceName>" <outputName>.mp4 -f mpeg1video http://localhost:<webSocketsStreamingPort>/<secretKey>/<width>/height)
-if you don't want to record, remove 'output' keyword.
 ```
 
 
