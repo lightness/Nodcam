@@ -1,7 +1,15 @@
 var ALL_COMMANDS = require("../all");
 
 
-function commandHelp(parts) {
+function HelpCommand() { }
+
+HelpCommand.prototype.isApplicable = function (commandData) {
+    return commandData.command === "help";
+}
+
+HelpCommand.prototype.handle = function (commandData) {
+    let parts = commandData.parts;
+
     if (parts.length === 1) {
         return Object.keys(ALL_COMMANDS).reduce(function (acc, key) {
             return acc + "/" + key + " - " + ALL_COMMANDS[key].message + "\n";
@@ -39,4 +47,4 @@ function commandHelp(parts) {
     }
 }
 
-module.exports = commandHelp;
+module.exports = new HelpCommand();

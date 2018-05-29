@@ -8,6 +8,7 @@ var redisClient = require("./redis");
 var processCommand = require("./command/core");
 var wss = require("./web-socket-server");
 
+
 wss.on('connection', function (ws) {
     var ip = getIP(ws);
 

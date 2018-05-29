@@ -5,31 +5,32 @@ var ALL_COMMANDS = require("./all");
 var getIP = require("../util/get-ip");
 
 
-var numberRegex = /^[-+]?\d+$/
-
-// TODO: Refactor
 function processCommand(command, ws) {
     let parts = getParts(command);
 
-    if (parts[0] === "/help") {
-        return commands.help(parts);
-    } else if (parts[0] === "/online") {
-        return commands.online();
-    } else if (parts[0] === "/history") {
-        if (parts.length !== 3 || !numberRegex.test(parts[1]) || !numberRegex.test(parts[2])) {
-            throw Error("Wrong command. Type `/help history` for more info");
-        }
+    let commandData = {
+        raw: command,
+        parts: parts,
+        command: parts[0].slice(1),
+        socket: ws,
+        ip: getIP(ws)
+    };
 
-        return commands.history(parseInt(parts[1]), parseInt(parts[2]), getIP(ws));
-    } else if (_.startsWith(command, "/set name")) {
-        if (parts.length !== 3) {
-            throw Error("Wrong command. Type `/help set` for more info");
-        }
+    let applicableHandlers = _.filter(commands, c => c.isApplicable(commandData));
 
-        return commands.set(parts[1])(unescape(parts[2]), ws);
-    } else {
-        throw Error("Wrong command. Type `/help` for more info");
+    if (_.isEmpty(applicableHandlers)) {
+        throw new Error("Wrong command. Type `/help` for more info");
     }
+
+    if (applicableHandlers.length > 1) {
+        throw new Error("Multiple handlers found.");
+    }
+
+    if (_.isFunction(applicableHandlers[0].validate)) {
+        applicableHandlers[0].validate(commandData);
+    }
+
+    return applicableHandlers[0].handle(commandData);
 
     function getParts(command) {
         let parts = command.match(/[^\s"]+|"[^"]*"/g);

@@ -3,15 +3,23 @@ var getIP = require("../../util/get-ip");
 var resolveName = require("../../util/resolve-name");
 
 
-function commandOnline() {
-    let ips = getIpOfOnlineUsers();
+function OnlineCommand(wss) {
+    this.wss = wss;
+}
+
+OnlineCommand.prototype.isApplicable = function (commandData) {
+    return commandData.command === "online";
+}
+
+OnlineCommand.prototype.handle = function (commandData) {
+    let ips = this.getIpOfOnlineUsers();
 
     return Promise.all(ips.map(ip => resolveName(ip)))
         .then(namesOfIps => "Online users: " + namesOfIps.join(", "));
 }
 
-function getIpOfOnlineUsers() {
-    return wss.clients.map(client => getIP(client));
+OnlineCommand.prototype.getIpOfOnlineUsers = function () {
+    return this.wss.clients.map(client => getIP(client));
 }
 
-module.exports = commandOnline;
+module.exports = new OnlineCommand(wss);

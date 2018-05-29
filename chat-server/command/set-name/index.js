@@ -3,8 +3,21 @@ var getHash = require("../../util/get-hash");
 var setHash = require("../../util/set-hash");
 
 
-function setUserName(name, ws) {
-    let ip = getIP(ws);
+function SetNameCommand() { }
+
+SetNameCommand.prototype.isApplicable = function (commandData) {
+    return commandData.command === "set" && commandData.parts[1] === "name";
+}
+
+SetNameCommand.prototype.validate = function(commandData) {
+    if (commandData.parts.length !== 3) {
+        throw new Error("Wrong command. Type `/help set` for more info");
+    }
+}
+
+SetNameCommand.prototype.handle = function (commandData) {
+    let ip = commandData.ip;
+    let name = commandData.parts[2];
     let error = new Error("Name is already obtained by another user");
 
     return getHash("name:to:ip", name)
@@ -32,4 +45,4 @@ function setUserName(name, ws) {
         });
 }
 
-module.exports = setUserName;
+module.exports = new SetNameCommand();
